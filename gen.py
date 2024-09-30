@@ -110,6 +110,7 @@ SSG = m.MarkoExtension(elements=[DataContainer, WikiLink], renderer_mixins=[Data
 md = m.Markdown(extensions=[SSG])
 
 pl = ProjectLoader()
+base_url = "https://astorath.cloud/"
 menu = [] # ["<ul>"]
 
 for order, fp, nm in pl.gen_posts():
@@ -126,7 +127,9 @@ for order, fp, nm in pl.gen_posts():
     cnt = pl.get_post_content(fp)
     cnt = md(cnt)
     with open("src/{}.html".format(nm), "w+") as f: 
-        f.write(pl.template('page.html', menu=menu, content=cnt, resources=resources))
+        page_url = base_url + nm + ".html" 
+        page_id = nm
+        f.write(pl.template('page.html', menu=menu, content=cnt, resources=resources, page_id=page_id, page_url=page_url))
 
 
 index_page = ""
@@ -137,8 +140,10 @@ for order, fp, nm in heapq.nsmallest(9, pl.gen_posts()):
     cnt = md(cnt)
     index_page += pl.template("section.html", content=cnt)
 
+page_url = base_url + "index.html" 
+page_id = "index"
 with open("src/index.html", "w+") as f: 
-    f.write(pl.template('page.html', menu=menu, content=index_page, resources=resources))
+    f.write(pl.template('page.html', menu=menu, content=index_page, resources=resources, page_id=page_id, page_url=page_url))
 
 
 

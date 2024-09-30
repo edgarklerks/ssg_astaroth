@@ -3,7 +3,7 @@
 Astaroth has a long history and is likely part of humanity and perhaps older than us. She has as much names as the wind 
 and frankly it is unknowable to get them all. However I found a couple, which may help the beginning practioner. 
 
-Often a different name refers to a different [[03_mask]] to her, this is only a part of her relative to a culture and a specific period of time. 
+Often a different name refers to a different [[03_masks]] to her, this is only a part of her relative to a culture and a specific period of time. 
 
 ## Bible 
 
