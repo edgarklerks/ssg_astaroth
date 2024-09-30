@@ -129,4 +129,16 @@ for order, fp, nm in pl.gen_posts():
         f.write(pl.template('page.html', menu=menu, content=cnt, resources=resources))
 
 
+index_page = ""
+for order, fp, nm in heapq.nsmallest(9, pl.gen_posts()):
+    (nm,_) = nm.split(".", 1)
+
+    cnt = pl.get_post_content(fp)
+    cnt = md(cnt)
+    index_page += pl.template("section.html", content=cnt)
+
+with open("src/index.html", "w+") as f: 
+    f.write(pl.template('page.html', menu=menu, content=index_page, resources=resources))
+
+
 
