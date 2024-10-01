@@ -117,31 +117,6 @@ class ProjectLoader(object):
         
         
         
-def extract_meta(doc):
-    if isinstance(doc, str): 
-        return None
-    if doc.get_type() == "MetaTag":
-        return doc.attrs
-    elif hasattr(doc, "children"):
-        for el in doc.children:
-            s = extract_meta(el)
-            if s: 
-                return s
-    else: 
-            return None
-
-def transform_meta(meta):
-    if not meta:
-        return ""
-    output = ""
-    for k, v in meta.items():
-        output += "<meta name=\"{}\" content=\"{}\" />\n".format(k,v)
-        if k == "title":
-            output += "<title>{} - Astorath</title>\n".format(v)
-            output += "<meta property=\"og:title\" content=\"{} - Astorath\" />\n".format(v)
-            output += "<meta name=\"twitter:title\" content=\"{} - Astorath\" />\n".format(v)
-    return output
-        
                 
 class Site(object):
     def __init__(self, base_url : str, title : str, components : [str]) -> None:
@@ -193,9 +168,9 @@ class Site(object):
         for k, v in meta.items():
             output += "<meta name=\"{}\" content=\"{}\" />\n".format(k,v)
             if k == "title":
-                output += "<title>{} - Astorath</title>\n".format(v)
-                output += "<meta property=\"og:title\" content=\"{} - Astorath\" />\n".format(v)
-                output += "<meta name=\"twitter:title\" content=\"{} - Astorath\" />\n".format(v)
+                output += "<title>{} - {}</title>\n".format(v, self.title)
+                output += "<meta property=\"og:title\" content=\"{} - {}\" />\n".format(v, self.title)
+                output += "<meta name=\"twitter:title\" content=\"{} - {}\" />\n".format(v, self.title)
         return output
 
 
@@ -249,7 +224,8 @@ class Site(object):
 
 
 
-site = Site("https://astorath.cloud/", "Astorath",["resources"])
+site = Site("https://astorath.cloud/", "Astaroth",
+            ["resources"])
 site.build_site()
 
 
