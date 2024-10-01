@@ -2,15 +2,20 @@
 import marko as m
 import marko.inline as mi
 import re
-import unittest
-import pprint
 import csv
 import jinja2
-import os 
 import posix
 import heapq
-import itertools
+import logging
 
+
+logger = logging.getLogger("Site")    
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 class MetaTag(mi.InlineElement):
     priority = 5
@@ -65,15 +70,16 @@ class WikiLink(mi.InlineElement):
     
 class WikiRenderer(object):
     def render_wiki_link(self, element):
-        print(element.link)
         (_, nm) = element.link.split("_", 1)
+        logger.debug("Rendering wiki link {}".format(nm))
         nm = nm.replace("_"," ")
-        return f"<a href='./{element.link}.html'>{nm}</a>"
+        return f"<a href='/{element.link}.html'>{nm}</a>"
 
         
 
 class DataContainerRenderer(object):
     def render_data_container(self, element):
+        logger.debug("Rendering data container {}".format(element))
         if element.type == 'data':
             return element.rows 
         elif element.type == 'csv':
@@ -92,14 +98,19 @@ class DataContainerRenderer(object):
    
 
 class ProjectLoader(object):
+    _posts = []
     def __init__(self):
         self.loader = jinja2.FileSystemLoader("./templates/")
         self.env = jinja2.Environment(loader=self.loader)
     
     def template(self, name, **kwargs):
+        logger.debug("Rendering template {} with {}".format(name, ", ".join(kwargs.keys())))
         template = self.env.get_template(name)
         return template.render(**kwargs)
     def gen_posts(self):
+        if ProjectLoader._posts:
+            logger.debug("Returning cached posts")
+            return ProjectLoader._posts
         posts = []
         paths = posix.listdir("posts")
         nr_paths = len(paths)
@@ -107,6 +118,8 @@ class ProjectLoader(object):
             (order, nm) = fp.split("_", 1)
             # Reverse order (nr_paths - order)
             heapq.heappush(posts, (nr_paths - int(order), "posts/{}_{}".format(order, nm,), fp))
+        ProjectLoader._posts = posts
+        logger.info("Number of posts returned: {}".format(len(posts)))
         return posts
     def get_post_content(self, fp):
         with open(fp, "r") as f:
@@ -116,7 +129,7 @@ class ProjectLoader(object):
             return f.read()
         
 class Site(object):
-    def __init__(self, base_url : str, title : str, components : [str]) -> None:
+    def __init__(self, base_url : str, title : str, components : list[str]) -> None:
         self.pl = ProjectLoader()
         self.title = title
         self.base_url = base_url
@@ -135,14 +148,17 @@ class Site(object):
         )
 
     def build_component_dict(self):
+        logger.info("Building component dictionary")  
         self.component_dict = {k: self.get_component(k) for k in self.components}
     def remove_ext(self, nm : str) -> str:
         return nm.split(".", 1)[0]
 
     def generate_menu_entries(self):
         self.menu_items = [self.md(f"[[{self.remove_ext(nm)}]]") for _, _, nm in self.pl.gen_posts()]
+        logger.info("Generated {} menu entries".format(len(self.menu_items)))
         
     def get_component(self, name : str):
+        logger.info("Generating component {}".format(name))
         return self.md(self.pl.get_component_content(name))
  
     def extract_meta(self, doc):
@@ -172,9 +188,12 @@ class Site(object):
 
 
     def build_posts(self):
+        logger.info("Building posts...")
         for order, fp, nm in self.pl.gen_posts():
             cnt = self.md.parse(self.pl.get_post_content(fp))
             meta = self.render_meta(self.extract_meta(cnt))
+            if not meta:
+                logger.warn(f"No meta tag found in post {nm}")
             cnt = self.md.render(cnt)
             self.write_post(self.remove_ext(nm), cnt, meta)
     
@@ -201,6 +220,7 @@ class Site(object):
         return output
             
     def build_index_page(self):
+        logger.info("Building index page")
         index_page = ""
         for order, fp, nm in heapq.nsmallest(9, self.pl.gen_posts()):
             cnt = self.pl.get_post_content(fp)
@@ -212,6 +232,7 @@ class Site(object):
     
 
     def build_site(self):
+        logger.info("Building site")
         self.generate_menu_entries()
         self.build_component_dict()
         self.menu = "\n".join(self.menu_items)

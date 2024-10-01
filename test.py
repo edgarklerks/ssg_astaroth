@@ -71,7 +71,6 @@ a,b,d,e,g
         self.assertEqual(cnt.children[1].children[0].rows, '2,3,4\n5,6,7')
     def test_render_post(self):
         cnt = self.site.md(self.post)
-        print(cnt)
         self.assertIn("02_somelink.html", cnt)
         self.assertIn("<td>7</td>",cnt)
         self.assertIn("<table>", cnt)
