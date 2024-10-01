@@ -12,4 +12,4 @@
 
 ###### Digital books
 
-[Various books](https://drive.google.com/drive/folders/1ILVq-1mtMGvyn-dynORS6o-gTnz3R0kX)
+[Digital Library on magick](https://drive.google.com/drive/folders/1ILVq-1mtMGvyn-dynORS6o-gTnz3R0kX)

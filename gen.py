@@ -51,14 +51,14 @@ class DataContainer(mi.InlineElement):
                          """, re.MULTILINE | re.VERBOSE )
     parse_children = False
     def __init__(self, match):
-        self.rows = match.group('rows')
-        self.type = match.group('block')
+        self.rows = match.group('rows').strip()
+        self.type = match.group('block').strip()
         pass
 
 
 class WikiLink(mi.InlineElement):
     priority = 5
-    pattern = re.compile(r"\[\[(?P<link>[\w_]+)\]\]", re.VERBOSE)
+    pattern = re.compile(r"\[\[(?P<link>(?P<order>\d+)_[\w_]+)\]\]", re.VERBOSE)
 
     def __init__(self, match):
         self.link = match.group('link')
@@ -115,9 +115,6 @@ class ProjectLoader(object):
         with open("components/{}.md".format(fp), "r") as f:
             return f.read()
         
-        
-        
-                
 class Site(object):
     def __init__(self, base_url : str, title : str, components : [str]) -> None:
         self.pl = ProjectLoader()
@@ -155,7 +152,7 @@ class Site(object):
             return doc.attrs
         elif hasattr(doc, "children"):
             for el in doc.children:
-                s = extract_meta(el)
+                s = self.extract_meta(el)
                 if s: 
                     return s
         else: 
@@ -163,7 +160,7 @@ class Site(object):
 
     def render_meta(self, meta):
         if not meta:
-            return ""
+            return None
         output = ""
         for k, v in meta.items():
             output += "<meta name=\"{}\" content=\"{}\" />\n".format(k,v)
@@ -221,12 +218,10 @@ class Site(object):
         self.build_posts()
         self.build_index_page()
 
-
-
-
-site = Site("https://astorath.cloud/", "Astaroth",
+if __name__ == "__main__":
+    site = Site("https://astorath.cloud/", "Astaroth",
             ["resources"])
-site.build_site()
+    site.build_site()
 
 
 
