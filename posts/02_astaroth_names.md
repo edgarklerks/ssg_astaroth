@@ -1,3 +1,12 @@
+|meta|
+    title: The names of Astaroth
+    author: Edgar Klerks
+    date: 01-09-2024
+    keywords: Astaroth, demononlatry, deified masks, demons
+    description: A post concerning the many names and evolution of Astaroth 
+|meta|
+
+
 # The names of Astaroth
 
 Astaroth has a long history and is likely part of humanity and perhaps older than us. She has as much names as the wind 
@@ -19,7 +28,8 @@ Astaroth however comes from Astarte, a hellinized form of the middle eastern god
 ## Semitic origin
 
 Attart was equivalent to the goddess Ishtar and hence people often claim that Astaroth is the same as Ishtar. 
-While this is partially true, it is a bit more complicated due to the masks she wears. 
+While this is partially true, it is a bit more complicated due to the masks she wears. It is likely that she 
+inherited new aspects during the various merges and that her legions grew considerably during this time. 
 
 Astarte was worshipped during the bronze age (at least 1200BC) up to the classical antiquity period (e.g  old Greece).   
 

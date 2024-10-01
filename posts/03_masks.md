@@ -1,3 +1,10 @@
+|meta|
+    title: About masks
+    author: Edgar Klerks
+    date: 01-09-2024
+    keywords: Astaroth, demononlatry, deified masks, demons
+    description: Often gods wear various masks, this posts gives a description of what those are
+|meta|
 # About masks 
 What are masks?
 
