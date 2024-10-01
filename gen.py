@@ -143,52 +143,114 @@ def transform_meta(meta):
     return output
         
                 
+class Site(object):
+    def __init__(self, base_url : str, title : str, components : [str]) -> None:
+        self.pl = ProjectLoader()
+        self.title = title
+        self.base_url = base_url
+        self.components = components
+        self.menu_items = []
+        self.md = m.Markdown(extensions=[
+            m.MarkoExtension(
+                elements=[
+                    MetaTag, 
+                    DataContainer, 
+                    WikiLink], 
+                renderer_mixins=[
+                    DataContainerRenderer, 
+                    WikiRenderer, 
+                    MetaTagRenderer])]
+        )
+
+    def build_component_dict(self):
+        self.component_dict = {k: self.get_component(k) for k in self.components}
+    def remove_ext(self, nm : str) -> str:
+        return nm.split(".", 1)[0]
+
+    def generate_menu_entries(self):
+        self.menu_items = [self.md(f"[[{self.remove_ext(nm)}]]") for _, _, nm in self.pl.gen_posts()]
+        
+    def get_component(self, name : str):
+        return self.md(self.pl.get_component_content(name))
+ 
+    def extract_meta(self, doc):
+        if isinstance(doc, str): 
+            return None
+        if doc.get_type() == "MetaTag":
+            return doc.attrs
+        elif hasattr(doc, "children"):
+            for el in doc.children:
+                s = extract_meta(el)
+                if s: 
+                    return s
+        else: 
+                return None
+
+    def render_meta(self, meta):
+        if not meta:
+            return ""
+        output = ""
+        for k, v in meta.items():
+            output += "<meta name=\"{}\" content=\"{}\" />\n".format(k,v)
+            if k == "title":
+                output += "<title>{} - Astorath</title>\n".format(v)
+                output += "<meta property=\"og:title\" content=\"{} - Astorath\" />\n".format(v)
+                output += "<meta name=\"twitter:title\" content=\"{} - Astorath\" />\n".format(v)
+        return output
+
+
+    def build_posts(self):
+        for order, fp, nm in self.pl.gen_posts():
+            cnt = self.md.parse(self.pl.get_post_content(fp))
+            meta = self.render_meta(self.extract_meta(cnt))
+            cnt = self.md.render(cnt)
+            self.write_post(self.remove_ext(nm), cnt, meta)
+    
+    def write_post(self, nm, cnt, meta):
+        with open("src/{}.html".format(nm), "w+") as f:
+            page_url = self.base_url + nm  + ".html"
+            page_id = nm
+            f.write(self.pl.template('page.html',
+                                    meta=meta,
+                                    menu=self.menu,
+                                    content=cnt, 
+                                    page_id=page_id,
+                                    page_url=page_url,
+                                    **self.component_dict
+                                     ))
+
+        
+            
+    def get_generic_meta(self,v):
+        output = ""
+        output += "<title>{} - {}</title>\n".format(v, self.title)
+        output += "<meta property=\"og:title\" content=\"{} - {}\" />\n".format(v, self.title)
+        output += "<meta name=\"twitter:title\" content=\"{} - {}\" />\n".format(v, self.title)
+        return output
+            
+    def build_index_page(self):
+        index_page = ""
+        for order, fp, nm in heapq.nsmallest(9, self.pl.gen_posts()):
+            cnt = self.pl.get_post_content(fp)
+            cnt = self.md(cnt)
+            index_page += self.pl.template("section.html", content=cnt)
+        
+        page_id = "index"
+        self.write_post(page_id, index_page, self.get_generic_meta("index"))
+    
+
+    def build_site(self):
+        self.generate_menu_entries()
+        self.build_component_dict()
+        self.menu = "\n".join(self.menu_items)
+        self.build_posts()
+        self.build_index_page()
 
 
 
-SSG = m.MarkoExtension(elements=[MetaTag, DataContainer, WikiLink], renderer_mixins=[DataContainerRenderer, WikiRenderer, MetaTagRenderer])
 
-md = m.Markdown(extensions=[SSG])
-
-pl = ProjectLoader()
-base_url = "https://astorath.cloud/"
-menu = [] # ["<ul>"]
-
-for order, fp, nm in pl.gen_posts():
-    (nm, _) = nm.split(".", 1)
-    item = "[[{}]]".format(nm)
-    menu.append(md(item))
-
-menu = "\n".join(menu)
-
-resources = md(pl.get_component_content("resources"))
-
-
-for order, fp, nm in pl.gen_posts():
-    (nm,_) = nm.split(".", 1)
-    cnt = pl.get_post_content(fp)
-    cnt = md.parse(cnt)
-    meta = transform_meta(extract_meta(cnt))
-    cnt = md.render(cnt)
-
-    with open("src/{}.html".format(nm), "w+") as f: 
-        page_url = base_url + nm + ".html" 
-        page_id = nm
-        f.write(pl.template('page.html', meta=meta, menu=menu, content=cnt, resources=resources, page_id=page_id, page_url=page_url))
-
-
-index_page = ""
-for order, fp, nm in heapq.nsmallest(9, pl.gen_posts()):
-    (nm,_) = nm.split(".", 1)
-
-    cnt = pl.get_post_content(fp)
-    cnt = md(cnt)
-    index_page += pl.template("section.html", content=cnt)
-
-page_url = base_url + "index.html" 
-page_id = "index"
-with open("src/index.html", "w+") as f: 
-    f.write(pl.template('page.html', menu=menu, content=index_page, resources=resources, page_id=page_id, page_url=page_url))
+site = Site("https://astorath.cloud/", "Astorath",["resources"])
+site.build_site()
 
 
 
